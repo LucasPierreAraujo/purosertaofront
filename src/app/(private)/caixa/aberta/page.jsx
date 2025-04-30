@@ -1,7 +1,16 @@
+"use client";
+
+import { useRouter } from "next/navigation";
 import Button from "@/components/ui/button";
 import Image from "next/image";
 
-export default function page() {
+export default function Page() {
+  const router = useRouter();
+
+  const handleFecharCaixa = () => {
+    router.push("/caixa/open"); // Altere para o caminho correto da sua rota
+  };
+
   return (
     <section className="bg-[#FFD6B9] min-h-screen flex items-center justify-center">
       <div className="bg-white px-12 py-10 rounded-3xl shadow-md flex flex-col items-center gap-6">
@@ -34,19 +43,18 @@ export default function page() {
           <p>TOTAL</p>
           <p>R$ 4000,00</p>
         </div>
-        <Button>
-        <span className="flex items-center justify-center font-bold gap-4">
-          FECHAR CAIXA
-          <Image
-            src={"/icons/CashRegister.png"}
-            alt="register"
-            width={24}
-            height={24}
-          />
-        </span>
-      </Button>
+        <Button onClick={handleFecharCaixa}>
+          <span className="flex items-center justify-center font-bold gap-4">
+            FECHAR CAIXA
+            <Image
+              src={"/icons/CashRegister.png"}
+              alt="register"
+              width={24}
+              height={24}
+            />
+          </span>
+        </Button>
       </div>
-     
     </section>
   );
 }
