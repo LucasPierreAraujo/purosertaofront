@@ -3,13 +3,16 @@
 import ModalComanda from "@/components/layout/modal-comanda";
 import Image from "next/image";
 import { useState } from "react";
-import ModalQuantidade from "@/components/layout/modal-quantidade";
 
 export default function NovaComanda({ onClose }) {
   const [nome, setNome] = useState("");
   const [buscaProduto, setBuscaProduto] = useState("");
+  const [modalQuantidadeProduto, setModalQuantidadeProduto] = useState({
+    produto: null,
+    quantidade: 0,
+  });
 
-  const [produtos, setProdutos] = useState([]); // Produtos na comanda
+  const [produtos, setProdutos] = useState([]);
 
   const estoqueProdutos = [
     { id: 1, nome: "Coca-Cola (lata)", valor: 6.0 },
@@ -22,9 +25,7 @@ export default function NovaComanda({ onClose }) {
   const [produtoSelecionado, setProdutoSelecionado] = useState(null);
 
   const handleAbrirModalQuantidade = (produto) => {
-    console.log(produto); // Verificar se o produto está correto
-    setProdutoSelecionado(produto);
-    setModalAberto(true);
+    setModalQuantidadeProduto((prev) => ({ ...prev, produto }));
   };
 
   const handleAdicionarProduto = (produto, quantidade) => {
@@ -49,7 +50,47 @@ export default function NovaComanda({ onClose }) {
   return (
     <>
       <ModalComanda onClose={onClose}>
-        <div className="flex items-center w-full justify-center">
+        <div className="flex items-center w-full justify-center relative z-40">
+          {modalQuantidadeProduto.produto && (
+            <div className="absolute w-full h-full flex items-center justify-center rounded-lg bg-white/50 backdrop-blur-sm">
+              <div className="bg-white p-4 rounded-lg shadow-lg w-fit h-fit items-center justify-center flex flex-col">
+                <h1 className="text-2xl font-bold">Adicionar Produto</h1>
+                <p className="text-gray-500">Selecione a quantidade:</p>
+                <input
+                  onChange={(e) =>
+                    setModalQuantidadeProduto((prev) => ({
+                      ...prev,
+                      quantidade: Number(e.target.value),
+                    }))
+                  }
+                  className="p-2 border"
+                  type="number"
+                  placeholder="quantidade"
+                />
+                <div className="flex gap-2 items-center justify-center">
+                  <button
+                    onClick={() => {
+                      setModalQuantidadeProduto({ produto: null, quantidade: 0 });
+                    }}
+                    className="font-semibold bg-red-500 text-white px-4 py-2 rounded-lg mt-4 w-full hover:bg-red-600/80 cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={() => {
+                      const quantidade = modalQuantidadeProduto.quantidade;
+                      const produto = modalQuantidadeProduto.produto;
+                      handleAdicionarProduto(produto, quantidade);
+                      setModalQuantidadeProduto({ produto: null, quantidade: 0 });
+                    }}
+                    className="font-semibold bg-[#ADD8E6] text-white px-4 py-2 rounded-lg mt-4 w-full hover:bg-[#ADD8E6]/80 cursor-pointer"
+                  >
+                    Adicionar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           <div className="rounded-lg w-full">
             <div className="bg-white w-full p-4 flex items-center gap-64 mb-4">
               <input
