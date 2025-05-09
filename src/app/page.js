@@ -1,6 +1,8 @@
-"use client"
+
+"use client";
+
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { useRouter } from "next/router";
 
 export default function Home() {
   const router = useRouter();
@@ -9,5 +11,5 @@ export default function Home() {
     router.push("/login");
   }, [router]);
 
-  return null; 
+  return null;
 }

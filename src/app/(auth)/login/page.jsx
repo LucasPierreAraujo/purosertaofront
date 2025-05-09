@@ -10,7 +10,7 @@ export default function Page() {
 
   const handleLogin = () => {
     
-    router.push("/caixa/open"); 
+    router.push("/caixa"); 
   };
 
   return (

@@ -4,14 +4,17 @@ import ModalComanda from "@/components/layout/modal-comanda";
 import Image from "next/image";
 import { useState } from "react";
 
-export default function NovaComanda({ onClose }) {
+export default function NovaComanda({ onClose, id = null }) {
   const [nome, setNome] = useState("");
   const [buscaProduto, setBuscaProduto] = useState("");
   const [modalQuantidadeProduto, setModalQuantidadeProduto] = useState({
     produto: null,
-    quantidade: 0,
+    quantidade: 1,
   });
-
+  const [modalExcluirProduto, setModalExcluirProduto] = useState({
+    produto: null,
+    quantidade: 1,
+  });
   const [produtos, setProdutos] = useState([]);
 
   const estoqueProdutos = [
@@ -25,21 +28,45 @@ export default function NovaComanda({ onClose }) {
   const [produtoSelecionado, setProdutoSelecionado] = useState(null);
 
   const handleAbrirModalQuantidade = (produto) => {
-    setModalQuantidadeProduto((prev) => ({ ...prev, produto }));
+    setModalQuantidadeProduto({ produto, quantidade: 1 });
+  };
+
+  const handleAbrirModalExcluir = (produto) => {
+    setModalExcluirProduto({ produto, quantidade: 1 });
   };
 
   const handleAdicionarProduto = (produto, quantidade) => {
-    const produtoComQuantidade = {
-      ...produto,
-      quantidade,
-    };
-    setProdutos((prev) => [...prev, produtoComQuantidade]);
-    setModalAberto(false);
-    setProdutoSelecionado(null);
+    setProdutos((prevProdutos) => {
+      const existente = prevProdutos.find((p) => p.id === produto.id);
+
+      if (existente) {
+        return prevProdutos.map((p) =>
+          p.id === produto.id
+            ? { ...p, quantidade: p.quantidade + quantidade }
+            : p
+        );
+      } else {
+        return [...prevProdutos, { ...produto, quantidade }];
+      }
+    });
+
+    setModalQuantidadeProduto({ produto: null, quantidade: 1 });
   };
 
-  const handleExcluir = (id) => {
-    setProdutos(produtos.filter((produto) => produto.id !== id));
+  const handleExcluirProduto = (produto, quantidade) => {
+    setProdutos((prevProdutos) => {
+      const novoProduto = prevProdutos.find((p) => p.id === produto.id);
+      if (novoProduto && novoProduto.quantidade > quantidade) {
+        return prevProdutos.map((p) =>
+          p.id === produto.id
+            ? { ...p, quantidade: p.quantidade - quantidade }
+            : p
+        );
+      } else {
+        return prevProdutos.filter((p) => p.id !== produto.id);
+      }
+    });
+    setModalExcluirProduto({ produto: null, quantidade: 1 });
   };
 
   const total = produtos.reduce(
@@ -70,7 +97,10 @@ export default function NovaComanda({ onClose }) {
                 <div className="flex gap-2 items-center justify-center">
                   <button
                     onClick={() => {
-                      setModalQuantidadeProduto({ produto: null, quantidade: 0 });
+                      setModalQuantidadeProduto({
+                        produto: null,
+                        quantidade: 0,
+                      });
                     }}
                     className="font-semibold bg-red-500 text-white px-4 py-2 rounded-lg mt-4 w-full hover:bg-red-600/80 cursor-pointer"
                   >
@@ -81,7 +111,10 @@ export default function NovaComanda({ onClose }) {
                       const quantidade = modalQuantidadeProduto.quantidade;
                       const produto = modalQuantidadeProduto.produto;
                       handleAdicionarProduto(produto, quantidade);
-                      setModalQuantidadeProduto({ produto: null, quantidade: 0 });
+                      setModalQuantidadeProduto({
+                        produto: null,
+                        quantidade: 0,
+                      });
                     }}
                     className="font-semibold bg-[#ADD8E6] text-white px-4 py-2 rounded-lg mt-4 w-full hover:bg-[#ADD8E6]/80 cursor-pointer"
                   >
@@ -91,15 +124,62 @@ export default function NovaComanda({ onClose }) {
               </div>
             </div>
           )}
+
+          {modalExcluirProduto.produto && (
+            <div className="absolute w-full h-full flex items-center justify-center rounded-lg bg-white/50 backdrop-blur-sm">
+              <div className="bg-white p-4 rounded-lg shadow-lg w-fit h-fit items-center justify-center flex flex-col">
+                <h1 className="text-2xl font-bold">Excluir Produto</h1>
+                <p className="text-gray-500">
+                  Selecione a quantidade a ser excluída:
+                </p>
+                <input
+                  onChange={(e) =>
+                    setModalExcluirProduto((prev) => ({
+                      ...prev,
+                      quantidade: Number(e.target.value),
+                    }))
+                  }
+                  className="p-2 border"
+                  type="number"
+                  placeholder="quantidade"
+                />
+                <div className="flex gap-2 items-center justify-center">
+                  <button
+                    onClick={() => {
+                      setModalExcluirProduto({ produto: null, quantidade: 0 });
+                    }}
+                    className="font-semibold bg-red-500 text-white px-4 py-2 rounded-lg mt-4 w-full hover:bg-red-600/80 cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={() => {
+                      const quantidade = modalExcluirProduto.quantidade;
+                      const produto = modalExcluirProduto.produto;
+                      handleExcluirProduto(produto, quantidade);
+                    }}
+                    className="font-semibold bg-[#ADD8E6] text-white px-4 py-2 rounded-lg mt-4 w-full hover:bg-[#ADD8E6]/80 cursor-pointer"
+                  >
+                    Excluir
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="rounded-lg w-full">
             <div className="bg-white w-full p-4 flex items-center gap-64 mb-4">
-              <input
-                type="text"
-                placeholder="Nome do Cliente"
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
-                className="border p-2 rounded-xl"
-              />
+              {id ? (
+                `Lorena`
+              ) : (
+                <input
+                  type="text"
+                  placeholder="Nome do Cliente"
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  className="border p-2 rounded-xl"
+                />
+              )}
 
               <div className="relative max-w-md w-full">
                 <input
@@ -144,11 +224,28 @@ export default function NovaComanda({ onClose }) {
             </div>
 
             <div className="flex">
-              <div className="w-1/4 p-4 font-bold flex items-center justify-center border-b">
-                USUÁRIO
+              <div className="w-1/4 p-4 font-bold flex flex-col items-center justify-between border-b">
+                {id && (
+                  <h1 className="inline-flex items-center justify-center rounded-3xl bg-green-500 px-4 py-2 text-white text-lg">
+                    Aberto
+                  </h1>
+                )}
+                <h1>{id ? `LUCAS` : `Usuário`}</h1>
+                {id && (
+                  <div>
+                    <h3>Iniciado em: data</h3>
+                    <h3>Às: Horas</h3>
+                  </div>
+                )}
+                {id && (
+                  <div>
+                    <h3>Pago R$ valor</h3>
+                    <h3>Falta pagar R$ valor</h3>
+                  </div>
+                )}
               </div>
               <div className="pr-2 w-2/2">
-                <div className="bg-white border-b p-4">
+                <div className="bg-white border-b p-16">
                   <div className="grid grid-cols-4 font-bold border-b pb-2">
                     <span>Produto</span>
                     <span>Quantidade</span>
@@ -165,7 +262,7 @@ export default function NovaComanda({ onClose }) {
                       <span>{produto.quantidade}x</span>
                       <span>R$ {produto.valor.toFixed(2)}</span>
                       <button
-                        onClick={() => handleExcluir(produto.id)}
+                        onClick={() => handleAbrirModalExcluir(produto)}
                         className="text-red-500 hover:underline"
                       >
                         Excluir
@@ -192,38 +289,54 @@ export default function NovaComanda({ onClose }) {
               </button>
               <div className="pr-2 pb-2 w-2/2">
                 <div className="bg-white flex items-center justify-between rounded-b-3xl p-4">
-                  <button className="cursor-pointer flex items-center px-4 py-2 rounded gap-2">
-                    <Image
-                      src={"/icons/pagar.png"}
-                      alt="pagar"
-                      width={20}
-                      height={20}
-                    />
-                    Pagamento
-                  </button>
-                  <button className="cursor-pointer flex items-center px-4 py-2 rounded gap-2">
-                    <Image
-                      src={"/icons/check.svg"}
-                      alt="check"
-                      width={20}
-                      height={20}
-                    />
-                    Abrir Comanda
-                  </button>
+                  {id ? (
+                    <button className="cursor-pointer flex items-center px-4 py-2 rounded gap-2">
+                      <Image
+                        src={"/icons/imprimir.png"}
+                        alt="pagar"
+                        width={20}
+                        height={20}
+                      />
+                      Imprimir
+                    </button>
+                  ) : (
+                    <button className="cursor-pointer flex items-center px-4 py-2 rounded gap-2">
+                      <Image
+                        src={"/icons/pagar.png"}
+                        alt="pagar"
+                        width={20}
+                        height={20}
+                      />
+                      Pagamento
+                    </button>
+                  )}
+                  {id ? (
+                    <button className="cursor-pointer flex items-center px-4 py-2 rounded gap-2">
+                      <Image
+                        src={"/icons/pagar.png"}
+                        alt="check"
+                        width={20}
+                        height={20}
+                      />
+                      Pagamento
+                    </button>
+                  ) : (
+                    <button className="cursor-pointer flex items-center px-4 py-2 rounded gap-2">
+                      <Image
+                        src={"/icons/check .svg"}
+                        alt="check"
+                        width={20}
+                        height={20}
+                      />
+                      Abrir Comanda
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         </div>
       </ModalComanda>
-
-      {modalAberto && produtoSelecionado && (
-        <ModalQuantidade
-          produto={produtoSelecionado}
-          onClose={() => setModalAberto(false)}
-          onConfirmar={handleAdicionarProduto}
-        />
-      )}
     </>
   );
 }
